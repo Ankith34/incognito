@@ -1,10 +1,16 @@
+
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const cors = require('cors');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = 3000;
+
+// PostgreSQL connection (Render)
+const DB_URL = process.env.DATABASE_URL || 'postgresql://database_iqau_user:TR9o6dC9eyjkboHCpIqv...'; // Replace with your full connection string
+const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
 
 // Middleware
 app.use(cors());
@@ -498,10 +504,17 @@ app.post('/api/gigs/:id/hire', async (req, res) => {
     }
 });
 
-// Get all users (for admin purposes)
+
+// Get all users (DB first, fallback to file)
 app.get('/api/users', async (req, res) => {
     try {
-        const users = await readUsers();
+        let users = [];
+        try {
+            const dbRes = await pool.query('SELECT * FROM users');
+            users = dbRes.rows;
+        } catch (dbErr) {
+            users = await readUsers();
+        }
         // Remove passwords from response
         const usersWithoutPasswords = users.map(({ password, ...user }) => user);
         res.json({ users: usersWithoutPasswords });
@@ -574,70 +587,64 @@ app.get('/api/users/:id/profile', async (req, res) => {
     }
 });
 
-// Post review
+
+// Post review (DB first, fallback to file)
 app.post('/api/reviews', async (req, res) => {
+    const { gigId, revieweeId, reviewerId, rating, comment } = req.body;
+    if (!gigId || !revieweeId || !reviewerId || !rating) {
+        return res.status(400).json({ error: 'All required fields must be provided' });
+    }
+    if (rating < 1 || rating > 5) {
+        return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
     try {
-        const { gigId, revieweeId, reviewerId, rating, comment } = req.body;
-        
-        if (!gigId || !revieweeId || !reviewerId || !rating) {
-            return res.status(400).json({ error: 'All required fields must be provided' });
+        // Try DB
+        try {
+            const userRes = await pool.query('SELECT * FROM users WHERE id = $1 OR id = $2', [reviewerId, revieweeId]);
+            const reviewer = userRes.rows.find(u => u.id === reviewerId);
+            const reviewee = userRes.rows.find(u => u.id === revieweeId);
+            if (!reviewer || !reviewee) {
+                return res.status(400).json({ error: 'User not found' });
+            }
+            // Check for existing review
+            const existingRes = await pool.query('SELECT * FROM reviews WHERE gig_id = $1 AND reviewer_id = $2 AND reviewee_id = $3', [gigId, reviewerId, revieweeId]);
+            if (existingRes.rows.length > 0) {
+                return res.status(400).json({ error: 'You have already reviewed this person for this gig' });
+            }
+            // Insert review
+            const insertRes = await pool.query(
+                'INSERT INTO reviews (gig_id, reviewee_id, reviewer_id, reviewee_name, reviewer_name, rating, comment, createdat) VALUES ($1,$2,$3,$4,$5,$6,$7,NOW()) RETURNING *',
+                [gigId, revieweeId, reviewerId, reviewee.name, reviewer.name, rating, comment || '']
+            );
+            res.status(201).json({ message: 'Review submitted successfully', review: insertRes.rows[0] });
+        } catch (dbErr) {
+            // Fallback to file
+            const reviews = await readReviews();
+            const users = await readUsers();
+            const existingReview = reviews.find(r => r.gigId === gigId && r.reviewerId === reviewerId && r.revieweeId === revieweeId);
+            if (existingReview) {
+                return res.status(400).json({ error: 'You have already reviewed this person for this gig' });
+            }
+            const reviewer = users.find(u => u.id === reviewerId);
+            const reviewee = users.find(u => u.id === revieweeId);
+            if (!reviewer || !reviewee) {
+                return res.status(400).json({ error: 'User not found' });
+            }
+            const newReview = {
+                id: Math.max(...reviews.map(r => r.id), 0) + 1,
+                gigId,
+                revieweeId,
+                reviewerId,
+                revieweeName: reviewee.name,
+                reviewerName: reviewer.name,
+                rating,
+                comment: comment || '',
+                createdAt: new Date().toISOString()
+            };
+            reviews.push(newReview);
+            await writeReviews(reviews);
+            res.status(201).json({ message: 'Review submitted successfully', review: newReview });
         }
-        
-        if (rating < 1 || rating > 5) {
-            return res.status(400).json({ error: 'Rating must be between 1 and 5' });
-        }
-        
-        const reviews = await readReviews();
-        const users = await readUsers();
-        
-        // Check if review already exists
-        const existingReview = reviews.find(r => 
-            r.gigId === gigId && r.reviewerId === reviewerId && r.revieweeId === revieweeId
-        );
-        
-        if (existingReview) {
-            return res.status(400).json({ error: 'You have already reviewed this person for this gig' });
-        }
-        
-        // Get reviewer and reviewee names
-        const reviewer = users.find(u => u.id === reviewerId);
-        const reviewee = users.find(u => u.id === revieweeId);
-        
-        if (!reviewer || !reviewee) {
-            return res.status(400).json({ error: 'User not found' });
-        }
-        
-        const newReview = {
-            id: Math.max(...reviews.map(r => r.id), 0) + 1,
-            gigId,
-            revieweeId,
-            reviewerId,
-            revieweeName: reviewee.name,
-            reviewerName: reviewer.name,
-            rating,
-            comment: comment || '',
-            createdAt: new Date().toISOString()
-        };
-        
-        reviews.push(newReview);
-        await writeReviews(reviews);
-        
-        // Update user's average rating
-        const userReviews = reviews.filter(r => r.revieweeId === revieweeId);
-        const averageRating = userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length;
-        
-        // Update user in users file
-        const userIndex = users.findIndex(u => u.id === revieweeId);
-        if (userIndex !== -1) {
-            users[userIndex].averageRating = Math.round(averageRating * 10) / 10;
-            users[userIndex].totalReviews = userReviews.length;
-            await writeUsers(users);
-        }
-        
-        res.status(201).json({ 
-            message: 'Review submitted successfully',
-            review: newReview 
-        });
     } catch (error) {
         res.status(500).json({ error: 'Failed to submit review' });
     }
