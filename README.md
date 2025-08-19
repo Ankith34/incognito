@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # TaskConnect - Household Help Platform
 
 A modern, Swiggy-style web application that connects people needing short-term household help with workers nearby. Built with Node.js, Express, MongoDB, and vanilla JavaScript.
@@ -220,3 +221,6 @@ If you encounter any issues or have questions:
 ---
 
 **Happy Connecting! 🤝**
+=======
+# incognito
+>>>>>>> 5737ec2b0ca048d608288c2a8aa10443b2fbd7f6
