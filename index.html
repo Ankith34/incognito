@@ -3,43 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Serena - AI Personal Growth Companion</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>SnapWork - Find Gigs Near You</title>
+    <link rel="stylesheet" href="snapwork.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="modal-container">
-        <div class="modal-card">
-            <!-- Header -->
-            <div class="modal-header">
-                <h1>Serena</h1>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    
+                    <span>SnapWork</span>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search gigs..." id="search-input">
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn-text" onclick="showLogin()">Log in</button>
+                    <button class="btn-primary" onclick="showRegister()">Sign up</button>
+                </div>
+                
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- View Switcher -->
+    <section class="view-switcher">
+        <div class="container">
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="gigs">Find Gigs</button>
+                <button class="view-btn" data-view="workers">Find Workers</button>
+            </div>
+        </div>
+    </section>
+
+    
+
+    <!-- Main Gigs Grid -->
+    <main class="main-content">
+        <div class="container">
+            <div class="gigs-header">
+                <h1>Available Gigs Near You</h1>
+                <p class="gigs-count" id="gigs-count">Loading gigs...</p>
             </div>
             
-            <!-- Content -->
-            <div class="modal-content">
-                <p><strong>Hi!</strong></p>
-                
-                <p>Imagine a mentor that truly knows you — your goals, struggles, habits, and daily routine. This AI agent lives in your phone, is fine-tuned with your personal info, and guides you at every step of life. It's like having a personal coach, best friend, and digital guardian rolled into one.</p>
-                
-                <!-- Form -->
-                <form class="access-form">
-                    <div class="form-group">
-                        <label>YOUR EMAIL</label>
-                        <input type="email" placeholder="your email" />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>COMMENT</label>
-                        <textarea placeholder="what do you think about this project"></textarea>
-                    </div>
-                    
-                    <p class="form-note">More detail helps us prioritize access.</p>
-                    
-                    <button type="submit" class="submit-btn">Submit</button>
-                </form>
+            <!-- Loading State -->
+            <div class="loading-state" id="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Finding the best gigs for you...</p>
+            </div>
+            
+            <!-- Gigs Grid -->
+            <div class="gigs-grid" id="gigs-grid">
+                <!-- Gigs will be populated by JavaScript -->
+            </div>
+            
+            <!-- Load More Button -->
+            <div class="load-more-container" id="load-more-container">
+                <button class="btn-secondary btn-large" id="load-more-btn">
+                    <i class="fas fa-plus"></i>
+                    Load More Gigs
+                </button>
+            </div>
+            
+            <!-- No Results State -->
+            <div class="no-results" id="no-results" style="display: none;">
+                <div class="no-results-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>No gigs found</h3>
+                <p>Try adjusting your filters or search terms</p>
+                <button class="btn-primary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Workers Section -->
+    <main class="main-content" id="workers-content" style="display: none;">
+        <div class="container">
+            <div class="gigs-header">
+                <h1>Available Workers Near You</h1>
+                <p class="gigs-count" id="workers-count">Loading workers...</p>
+            </div>
+
+            <div class="loading-state" id="workers-loading-state" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Finding nearby workers...</p>
+            </div>
+
+            <div class="workers-grid" id="workers-grid" style="display: none;">
+                <!-- Workers will be populated by JavaScript -->
+            </div>
+
+            <div class="no-results" id="workers-no-results" style="display: none;">
+                <div class="no-results-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3>No workers found</h3>
+                <p>Try adjusting your search</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Action Button for Mobile -->
+    <button class="fab" onclick="showPostGig()" title="Post a Gig">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('login-modal')">&times;</span>
+            <div class="modal-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in to your SnapWork account</p>
+            </div>
+            <form class="auth-form" id="login-form">
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Email address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">Sign In</button>
+            </form>
+            <div class="modal-footer">
+                <p>Don't have an account? <a href="#" onclick="switchToRegister()">Sign up</a></p>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Register Modal -->
+    <div class="modal" id="register-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('register-modal')">&times;</span>
+            <div class="modal-header">
+                <h2>Join SnapWork</h2>
+                <p>Create your account to get started</p>
+            </div>
+            
+            <!-- User Type Selection -->
+            <div class="user-type-selector">
+                <button type="button" class="user-type-btn active" data-type="customer">
+                    <i class="fas fa-user"></i>
+                    <span>I need help</span>
+                    <small>Post gigs and hire workers</small>
+                </button>
+                <button type="button" class="user-type-btn" data-type="worker">
+                    <i class="fas fa-briefcase"></i>
+                    <span>I want to work</span>
+                    <small>Find gigs and earn money</small>
+                </button>
+            </div>
+            
+            <form class="auth-form" id="register-form">
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="Full name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Email address" required>
+                </div>
+                <div class="form-group">
+                    <input type="tel" name="phone" placeholder="Phone number" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" placeholder="Create password" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="location" placeholder="Your location" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">Create Account</button>
+            </form>
+            <div class="modal-footer">
+                <p>Already have an account? <a href="#" onclick="switchToLogin()">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gig Details Modal -->
+    <div class="modal modal-large" id="gig-details-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('gig-details-modal')">&times;</span>
+            <div id="gig-details-content">
+                <!-- Gig details will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Gig Modal -->
+    <div class="modal" id="post-gig-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('post-gig-modal')">&times;</span>
+            <div class="modal-header">
+                <h2>Post a New Gig</h2>
+                <p>Create a gig and find workers nearby</p>
+            </div>
+            
+            <form class="auth-form" id="post-gig-form" onsubmit="handlePostGig(event)">
+                <div class="form-group">
+                    <label>Gig Title</label>
+                    <input type="text" name="title" placeholder="e.g., House Cleaning Service" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="cleaning">Cleaning</option>
+                        <option value="pet-care">Pet Care</option>
+                        <option value="moving">Moving</option>
+                        <option value="car-care">Car Care</option>
+                        <option value="delivery">Delivery</option>
+                        <option value="gardening">Gardening</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" placeholder="Describe your gig in detail..." rows="4" required></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Payment Amount</label>
+                        <input type="text" name="payment" placeholder="e.g., ₹500" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Type</label>
+                        <select name="paymentType" required>
+                            <option value="fixed">Fixed Amount</option>
+                            <option value="hourly">Per Hour</option>
+                            <option value="daily">Per Day</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="urgent">
+                        <span class="checkmark"></span>
+                        This is an urgent gig
+                    </label>
+                </div>
+                
+                <div class="user-info-display">
+                    <h4>Your Contact Information</h4>
+                    <p><strong>Location:</strong> <span id="user-location-display">Will be auto-filled</span></p>
+                    <p><strong>Phone:</strong> <span id="user-phone-display">Will be auto-filled</span></p>
+                    <small>This information will be shared with interested workers</small>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-full">Post Gig</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal" id="review-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('review-modal')">&times;</span>
+            <div class="modal-header">
+                <h2>Leave a Review</h2>
+                <p>Rate your experience with <span id="review-reviewee-name"></span></p>
+            </div>
+            
+            <form class="auth-form" id="review-form" onsubmit="handleReviewSubmission(event)">
+                <input type="hidden" name="gigId" id="review-gig-id">
+                <input type="hidden" name="revieweeId" id="review-reviewee-id">
+                
+                <div class="form-group">
+                    <label>Rating</label>
+                    <div class="star-rating">
+                        <input type="radio" name="rating" value="5" id="star5" required>
+                        <label for="star5" class="star">★</label>
+                        <input type="radio" name="rating" value="4" id="star4">
+                        <label for="star4" class="star">★</label>
+                        <input type="radio" name="rating" value="3" id="star3">
+                        <label for="star3" class="star">★</label>
+                        <input type="radio" name="rating" value="2" id="star2">
+                        <label for="star2" class="star">★</label>
+                        <input type="radio" name="rating" value="1" id="star1">
+                        <label for="star1" class="star">★</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Comment (Optional)</label>
+                    <textarea name="comment" placeholder="Share your experience..." rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-full">Submit Review</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" id="success-message">
+        <i class="fas fa-check-circle"></i>
+        <span id="success-text">Success!</span>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profile-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('profile-modal')">&times;</span>
+            <div id="profile-content"></div>
+        </div>
+    </div>
+
+    <script src="snapwork.js"></script>
 </body>
 </html>

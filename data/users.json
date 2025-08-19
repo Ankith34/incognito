@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Ankith",
+    "email": "ggg@gmail.com",
+    "phone": "4234343",
+    "password": "hello",
+    "userType": "worker",
+    "location": "mangalore",
+    "createdAt": "2025-08-19T12:52:42.570Z"
+  },
+  {
+    "id": 2,
+    "name": "su",
+    "email": "s@gmail.com",
+    "phone": "4234343",
+    "password": "h",
+    "userType": "customer",
+    "location": "h",
+    "createdAt": "2025-08-19T13:05:09.641Z"
+  },
+  {
+    "id": 3,
+    "name": "niii",
+    "email": "fefe@gmail.com",
+    "phone": "444",
+    "password": "1",
+    "userType": "worker",
+    "location": "fef",
+    "createdAt": "2025-08-19T14:47:12.988Z"
+  },
+  {
+    "id": 4,
+    "name": "hire",
+    "email": "hire@gmail.com",
+    "phone": "4444",
+    "password": "1",
+    "userType": "customer",
+    "location": "gg",
+    "lat": null,
+    "lng": null,
+    "createdAt": "2025-08-19T15:26:54.283Z"
+  }
+]
