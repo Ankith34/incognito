@@ -1,7 +1,10 @@
 // SnapWork JavaScript - Gig Marketplace with Profile System
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:3000/api';
+// Use deployed backend URL if available, otherwise fallback to localhost
+const API_BASE_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000/api'
+    : 'https://your-app.onrender.com/api'; // <-- Replace with your actual Render URL
 
 // Global state
 let currentGigs = [];
