@@ -286,28 +286,30 @@ async function writeReviews(reviews) {
 
 // Get all gigs
 app.get('/api/gigs', async (req, res) => {
+    const { category, search, sort, lat, lng, radiusKm } = req.query;
     try {
-        const gigs = await readGigs();
-        const { category, search, sort, lat, lng, radiusKm } = req.query;
-        
+        let gigs = [];
+        try {
+            // Try to fetch gigs from the database
+            const dbRes = await pool.query('SELECT * FROM gigs');
+            gigs = dbRes.rows;
+        } catch (dbErr) {
+            // Fallback to local file
+            gigs = await readGigs();
+        }
+
         let filteredGigs = gigs;
-        
-        // Filter by category
         if (category && category !== 'all') {
             filteredGigs = filteredGigs.filter(gig => gig.category === category);
         }
-        
-        // Filter by search
         if (search) {
             const searchLower = search.toLowerCase();
-            filteredGigs = filteredGigs.filter(gig => 
+            filteredGigs = filteredGigs.filter(gig =>
                 gig.title.toLowerCase().includes(searchLower) ||
                 gig.description.toLowerCase().includes(searchLower) ||
                 gig.category.toLowerCase().includes(searchLower)
             );
         }
-        
-        // Compute distance if requester provided lat/lng
         if (lat && lng) {
             const here = { lat: parseFloat(lat), lng: parseFloat(lng) };
             const maxRadius = parseFloat(radiusKm || '25');
@@ -319,8 +321,6 @@ app.get('/api/gigs', async (req, res) => {
                 })
                 .filter(g => g.distanceKm == null || g.distanceKm <= maxRadius);
         }
-
-        // Sort gigs
         if (sort === 'price-low') {
             filteredGigs.sort((a, b) => parseFloat(a.payment.replace(/[^\d]/g, '')) - parseFloat(b.payment.replace(/[^\d]/g, '')));
         } else if (sort === 'price-high') {
@@ -330,7 +330,6 @@ app.get('/api/gigs', async (req, res) => {
         } else {
             filteredGigs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         }
-        
         res.json({ gigs: filteredGigs });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch gigs' });
