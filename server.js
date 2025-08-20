@@ -9,7 +9,7 @@ const app = express();
 const PORT = 3000;
 
 // PostgreSQL connection (Render)
-const DB_URL = process.env.DATABASE_URL || 'postgresql://database_iqau_user:TR9o6dC9eyjkboHCpIqv...'; // Replace with your full connection string
+const DB_URL = process.env.DATABASE_URL || 'postgresql://database_4pnr_user:USc8doOZwga1tjMHUisRPWB4LL4me9Ma@dpg-d2ib8g3e5dus73elol10-a/database_4pnr'; // Replace with your full connection string
 const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
 
 // Middleware
